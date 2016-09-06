@@ -1,3 +1,9 @@
+"""
+----------------------------- EP1 MAC425 ---------------------------------
+    Nome: Fabio Eduardo Kaspar        NUSP: 7991166
+--------------------------------------------------------------------------
+"""
+
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -18,6 +24,7 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+import searchAgents
 
 class SearchProblem:
     """
@@ -81,77 +88,71 @@ def depthFirstSearch(problem):
 
     To get started, you might want to try some of these simple commands to
     understand the search problem that is being passed in:
-
     """
-    coordAtual = problem.getStartState()
-    rotas = [ [(problem.getStartState(),'',0)] ]
+
     visitados = []
+    stack = [[(problem.getStartState(),'',0)]]
 
-    while not problem.isGoalState(coordAtual):                     
-        caminho = rotas.pop(0)
-        coordAtual = caminho[-1][0]
+    while len(stack) != 0:
+        last_route = stack.pop() # lista de tuplas
+        stateParent = last_route[-1][0] # estado em si
 
-        if coordAtual not in visitados:                            
-            novasRotas = []
-            visitados.append(coordAtual)
+        if problem.isGoalState(stateParent):
+            resp = []
+            for x in last_route[1:]:
+                resp.append(x[1])
 
-            vizinhos = problem.getSuccessors(coordAtual)
+            return resp
 
-            for x in vizinhos:     
-                novoCaminho = caminho[:]
-                novoCaminho.append(x)
+        if stateParent not in visitados:
+            visitados.append(stateParent)
+            childsAll = problem.getSuccessors(stateParent)  # lista de tuplas
 
-                novasRotas.append(novoCaminho)                     
+            for childState in childsAll:
+                route_child = last_route[:]
+                route_child.append(childState)
+                stack.append(route_child)                    
 
-            rotas = novasRotas + rotas
 
-    resp = []
-    custo = 0
-
-    for tuplas in caminho[1:]:
-        resp.append(tuplas[1])
-        custo += tuplas[2]
-
-    raw_input("Aperte a tecla")
-    return resp
-    
-    # "*** YOUR CODE HERE ***"
-    # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    coordAtual = problem.getStartState()
-    rotas = [[(problem.getStartState(),'',0)]]
-    visitados = []
-
-    while not problem.isGoalState(coordAtual):                     
-        caminho = rotas.pop(0)
-        coordAtual = caminho[-1][0]
-
-        if coordAtual not in visitados:                            
-            novasRotas = []
-            visitados.append(coordAtual)
-
-            vizinhos = problem.getSuccessors(coordAtual)
-
-            for x in vizinhos:     
-                novoCaminho = caminho[:]
-                novoCaminho.append(x)
-
-                novasRotas.append(novoCaminho)                     
-
-            rotas =  rotas+novasRotas
-
+    inicio = problem.getStartState()
     resp = []
-    custo = 0
+    
+    if not isinstance(problem, searchAgents.CornersProblem):
+        problem.visited = []
 
-    for tuplas in caminho[1:]:
-        resp.append(tuplas[1])
-        custo += tuplas[2]
+    while len(problem.visited) < 4:
+        visitados = []
+        queue = [[(inicio,'',0)]]
+       
+        while len(queue) != 0:
+            last_route = queue.pop(0) # lista de tuplas
+            stateParent = last_route[-1][0] # estado em si
 
-    raw_input("Aperte a tecla")
+            if problem.isGoalState(stateParent):
+                for x in last_route[1:]:
+                    resp.append(x[1])
+                if not isinstance(problem, searchAgents.CornersProblem):
+                    return resp
+                    
+                #print(problem.visited)
+                break
+
+            if stateParent not in visitados:
+                visitados.append(stateParent)
+                childsAll = problem.getSuccessors(stateParent)  # lista de tuplas
+
+                for childState in childsAll:
+                    route_child = last_route[:]
+                    route_child.append(childState)
+                    queue.append(route_child)
+
+        inicio = stateParent
     return resp
+    
 
 def iterativeDeepeningSearch(problem):
     """
@@ -165,45 +166,35 @@ def iterativeDeepeningSearch(problem):
     "*** YOUR CODE HERE ***"
     util.raiseNotDefined()
 
-# Funcao auxiliar para ordenar a lista pelo custo
-def getKey(rotas):
-    return rotas[0]
+def getKey(lista):
+    return lista[0]
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    coordAtual = problem.getStartState()
-    rotas = [[0, (problem.getStartState(),'',0)]]       # primeiro elem eh o custo
     visitados = []
+    queue_ordered = [[0, (problem.getStartState(),'',0)]]
 
-    while not problem.isGoalState(coordAtual):                     
-        rotas = sorted(rotas, key=getKey)
-        caminho = rotas.pop(0)
-        coordAtual = caminho[-1][0]
+    while len(queue_ordered) != 0:
+        queue_ordered = sorted(queue_ordered, key=getKey)
+        last_route = queue_ordered.pop(0) # lista de tuplas
+        stateParent = last_route[-1][0] # estado em si
 
-        if coordAtual not in visitados:                            
-            novasRotas = []
-            visitados.append(coordAtual)
+        if problem.isGoalState(stateParent):
+            resp = []
+            for x in last_route[2:]:
+                resp.append(x[1])
+            return resp
 
-            vizinhos = problem.getSuccessors(coordAtual)
+        if stateParent not in visitados:
+            visitados.append(stateParent)
+            childsAll = problem.getSuccessors(stateParent)  # lista de tuplas
 
-            for x in vizinhos:     
-                novoCaminho = caminho[:]    
-                novoCaminho.append(x)
-                novoCaminho[0] += novoCaminho[-1][2]
-                novasRotas.append(novoCaminho)                     
-            
-            rotas =  novasRotas+rotas
-
-    resp = []
-    custo = 0
-
-    for tuplas in caminho[2:]:
-        resp.append(tuplas[1])
-        custo += tuplas[2]
-
-    raw_input("Aperte a tecla")
-    return resp    
+            for childState in childsAll:
+                route_child = last_route[:]
+                route_child.append(childState)
+                route_child[0] += childState[2]
+                queue_ordered.append(route_child)
 
 
 def nullHeuristic(state, problem=None):
@@ -213,45 +204,36 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def manhattanDistance( xy1, xy2 ):
-    "Returns the Manhattan distance between points xy1 and xy2"
-    return abs( xy1[0] - xy2[0] ) + abs( xy1[1] - xy2[1] )
-
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    coordAtual = problem.getStartState()
-    rotas = [[0, (problem.getStartState(),'',0)]]       # primeiro elem eh o custo
+    state_initial = problem.getStartState()
+    
+    # [ [custoTotal, custoAcumulado, estado_inicial, estadosSucessores ... ], [proximos Caminhos] ...]
+    rotas = [ [ heuristic(state_initial, problem), 0, (state_initial,'',0) ] ]
     visitados = []
 
-    while not problem.isGoalState(coordAtual):                     
+    while len(rotas) != 0:
         rotas = sorted(rotas, key=getKey)
-        caminho = rotas.pop(0)
-        coordAtual = caminho[-1][0]
+        rota_candidata = rotas.pop(0)
+        stateParent = rota_candidata[-1][0]
 
-        if coordAtual not in visitados:                            
-            novasRotas = []
-            visitados.append(coordAtual)
+        if problem.isGoalState(stateParent):
+            resp = []
+            for x in rota_candidata[3:]:
+                resp.append(x[1])
+            return resp
 
-            vizinhos = problem.getSuccessors(coordAtual)
+        if stateParent not in visitados:
+            visitados.append(stateParent)
+            childsAll = problem.getSuccessors(stateParent)  # lista de tuplas
 
-            for x in vizinhos:     
-                novoCaminho = caminho[:]    
-                novoCaminho.append(x)
-                novoCaminho[0] += (novoCaminho[-1][2]+manhattanDistance(coordAtual, (1,1)))
-                novasRotas.append(novoCaminho)                     
-            
-            rotas =  novasRotas+rotas
-
-    resp = []
-    custo = 0
-
-    for tuplas in caminho[2:]:
-        resp.append(tuplas[1])
-        custo += tuplas[2]
-
-    raw_input("Aperte a tecla")
-    return resp
+            for childState in childsAll:
+                route_child = rota_candidata[:] # copia toda a rota da raiz ao stateParent
+                route_child.append(childState) # anexa o estado do filho na rota copiada
+                route_child[1] += childState[2] # atualiza custo acumulado
+                route_child[0] = route_child[1] + heuristic(childState[0], problem) # atualiza custo total estimado
+                rotas.append(route_child) 
 
 # Abbreviations
 bfs = breadthFirstSearch
